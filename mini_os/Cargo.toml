@@ -9,5 +9,11 @@ panic = "abort"
 [profile.release]
 panic = "abort"
 
-[dependencies]
+[[bin]]
+name = "mini_os"
+test = false
+bench = false
+
+[unstable]
+build-std = ["core", "compiler_builtins"]
 
