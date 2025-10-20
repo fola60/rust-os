@@ -1,10 +1,17 @@
-use blog_os::{serial_print, exit_qemu, QemuExitCode};
+#![no_std]
+#![no_main]
+#![feature(abi_x86_interrupt)]
+
+use lazy_static::lazy_static;
+use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
+use mini_os::{serial_println, serial_print, exit_qemu, QemuExitCode};
+use core::panic::PanicInfo;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
     serial_print!("stack_overflow::stack_overflow...\t");
 
-    blog_os::gdt::init();
+    mini_os::gdt::init();
     init_test_idt();
 
     stack_overflow();
@@ -18,16 +25,13 @@ fn stack_overflow() {
     volatile::Volatile::new(0).read(); 
 }
 
-use lazy_static::lazy_static;
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
-
 lazy_static! {
     static ref TEST_IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
         unsafe {
             idt.double_fault
                 .set_handler_fn(test_double_fault_handler)
-                .set_stack_index(blog_os::gdt::DOUBLE_FAULT_IST_INDEX);
+                .set_stack_index(mini_os::gdt::DOUBLE_FAULT_IST_INDEX);
         }
 
         idt
@@ -45,4 +49,9 @@ extern "x86-interrupt" fn test_double_fault_handler(
     serial_println!("[ok]");
     exit_qemu(QemuExitCode::Success);
     loop {}
+}
+
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    mini_os::test_panic_handler(info)
 }

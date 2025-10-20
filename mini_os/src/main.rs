@@ -13,9 +13,8 @@ pub extern "C" fn _start() -> ! {
 
     mini_os::init();
 
-    unsafe {
-        *(0xdeadbeef as *mut u8) = 42;
-    };
+    let ptr = 0xdeadbeef as *mut u32;
+    unsafe { *ptr = 42;}
 
     #[cfg(test)]
     test_main();
