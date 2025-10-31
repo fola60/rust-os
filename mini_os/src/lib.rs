@@ -11,6 +11,20 @@ pub mod serial;
 pub mod interrupts;
 pub mod vga_buffer;
 pub mod gdt;
+pub mod memory;
+
+#[cfg(test)]
+use bootloader::{entry_point, BootInfo};
+
+#[cfg(test)]
+entry_point!(test_kernel_main);
+
+#[cfg(test)]
+fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
+    init();
+    test_main();
+    loop {}
+}
 
 pub fn init() {
     gdt::init();
@@ -71,13 +85,6 @@ pub fn hlt_loop() -> ! {
 }
 
 
-#[cfg(test)]
-#[unsafe(no_mangle)]
-pub extern "C" fn _start() -> ! {
-    init();
-    test_main();
-    loop {}
-}
 
 #[cfg(test)]
 #[panic_handler]
